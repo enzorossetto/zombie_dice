@@ -12,9 +12,9 @@ from random import choice, sample, shuffle
 # Definição dos tipos de dados
 # Significados das letras: C = cérebro, T = tiro e P = passos
 
-DADO_VERDE = "CPCTPC"
-DADO_AMARELO = "TPCTPC"
-DADO_VERMELHO = "TPTCPT"
+DADO_VERDE = ("C", "P", "C", "T", "P", "C")
+DADO_AMARELO = ("T", "P", "C", "T", "P", "C")
+DADO_VERMELHO = ("T", "P", "T", "C", "P", "T")
 
 
 def rolar_dado(dado_rolado):
@@ -138,7 +138,7 @@ while True:
                 dados_suficientes_continuar = len(tubo_dados) >= 3
 
                 # Garante uma resposta válida
-                while continuar_turno.lower() != "s" and continuar_turno.lower() != "N":
+                while continuar_turno.lower() != "s" and continuar_turno.lower() != "n":
                     print("\nResposta inválida!")
                     continuar_turno = input("Digite S para sim ou N para não: ")
 
@@ -153,7 +153,7 @@ while True:
     jogar_novamente = input("Digite S para sim ou N para não: ")
 
     # Garante uma resposta válida
-    while jogar_novamente.lower() != "s" and jogar_novamente.lower() != "N":
+    while jogar_novamente.lower() != "s" and jogar_novamente.lower() != "n":
         print("\nResposta inválida!")
         jogar_novamente = input("Digite S para sim ou N para não: ")
 
