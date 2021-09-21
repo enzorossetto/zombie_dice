@@ -151,6 +151,85 @@ def score_jogador(lista_jogadores, jogador_turno):
     print(f"Humanos que fugiram: {lista_jogadores[jogador_turno]['passos']}\n")
 
 
+def verifica_continuar_turno(lista_jogadores, jogador_turno):
+    """
+        Verifica se o jogador deseja continuar o turno dele
+
+        :param lista_jogadores: lista com todos os jogadores
+        :param jogador_turno: nome do jogador atual
+        :return: True or False
+    """
+
+    score_jogador(lista_jogadores, jogador_turno)
+
+    print("Quer continuar caçando humanos?")
+    continuar_turno = input("Digite S para sim ou N para não: ")
+
+    # Garante uma resposta válida
+    while continuar_turno.lower() != "s" and continuar_turno.lower() != "n":
+        print("\nResposta inválida!")
+        continuar_turno = input("Digite S para sim ou N para não: ")
+
+    if continuar_turno.lower() == "n":
+        lista_jogadores[jogador_turno]["tiros"] = 0
+        lista_jogadores[jogador_turno]["passos"] = 0
+
+    return continuar_turno.lower() == "s"
+
+
+def verifica_vitoria(lista_jogadores, jogador_turno, numero_darrotados):
+    """
+        Verifica se o jogador ganhou ou perdeu. Se nenhum desses casos, valida se quer continuar jogando
+
+        :param lista_jogadores: lista com todos os jogadores
+        :param jogador_turno: nome do jogador que está na vez
+        :param numero_darrotados: quantia de derrotados até o momento
+        :return: {"vencedor": str, "contagem_derrotados": number, "continuar": boolean}
+    """
+
+    retorno = {"vencedor": '', "contagem_derrotados": numero_darrotados, "continuar": False}
+
+    # Reavalia condições de vitória ou derrota
+    vitoria = lista_jogadores[jogador_turno]["cerebros"] >= 13
+    derrota = lista_jogadores[jogador_turno]["tiros"] >= 3
+
+    # Valida condições para encerrar ou continuar o jogo
+    if vitoria:
+        print(f"\nVocê VENCEU! Os humanos nunca serão páreos para os zumbis!")
+        retorno["vencedor"] = jogador_turno
+    elif derrota:
+        print("\nVocê PERDEU! Os cérebros dos humanos foram mais astutos dessa vez.")
+        retorno["contagem_derrotados"] += 1
+    else:
+        retorno["continuar"] = verifica_continuar_turno(lista_jogadores, jogador_turno,)
+
+    return retorno
+
+
+def verifica_jogar_novamente():
+    """
+        Verifica se jogadores querem jogar uma nova partida
+
+        :return: True or False para resposta dos jogadores
+    """
+
+    # Verifica se desejam jogar outra vez
+    print("Quer caçar cérebros outra vez?")
+    jogar_novamente = input("Digite S para sim ou N para não: ")
+
+    # Garante uma resposta válida
+    while jogar_novamente.lower() != "s" and jogar_novamente.lower() != "n":
+        print("\nResposta inválida!")
+        jogar_novamente = input("Digite S para sim ou N para não: ")
+
+    if jogar_novamente.lower() == "n":
+        print("\nObrigado por jogar Zombie Dice!\n")
+        return False
+    else:
+        print("\nE que uma nova caçada comece!\n")
+        return True
+
+
 def zombie_dice():
     """
         Executa o jogo Zombie Dice
@@ -172,27 +251,24 @@ def zombie_dice():
             if vencedor != '':
                 continue
 
-            continuar_turno = "s"  # controla se continua o turno por escolha
             tubo_dados = gerar_tubo_embaralhado()  # inicia um novo tubo de dados
 
             # Condições que permitem o jogador a continuar o turno ou não
-            vitoria = jogadores[jogador]["cerebros"] >= 13
-            derrota = jogadores[jogador]["tiros"] >= 3
-            dados_suficientes_continuar = len(tubo_dados) >= 3
+            derrotado = jogadores[jogador]["tiros"] >= 3
 
             # Caso seja uma nova rodada, passa o turno do jogador que perdeu em rodada anterior
-            if derrota:
+            if derrotado:
                 print(f"\n{jogador} já foi derrotado. Passando turno para o próximo.\n")
                 continue
 
             # Validação se é possível continuar o turno
-            turno_possivel = not vitoria and not derrota and dados_suficientes_continuar
+            jogar = True
 
             print(f"{jogador} é o zumbi da vez!")
             print("Capture os humanos e coma seus cérebros!")
 
             # Jogador continua enquanto desejar ou for possível
-            while continuar_turno.lower() == "s" and turno_possivel:
+            while jogar:
                 # Pula uma linha para melhorar separação das mensagens
                 print()
 
@@ -200,37 +276,18 @@ def zombie_dice():
                 dados_turno = dados_no_copo(tubo_dados)
                 lancar_dados_copo(jogadores[jogador], dados_turno, tubo_dados)
 
-                # Reavalia condições de vitória ou derrota
-                vitoria = jogadores[jogador]["cerebros"] >= 13
-                derrota = jogadores[jogador]["tiros"] >= 3
+                # Valida o estado do jogador ou se ele deseja continuar jogando
+                estado_jogo = verifica_vitoria(jogadores, jogador, contagem_derrotados)
 
-                # Valida condições para encerrar ou continuar o jogo
-                if vitoria:
-                    print(f"\nVocê VENCEU! Os humanos nunca serão páreos para os zumbis!")
-                    vencedor = jogador
-                    break
-                elif derrota:
-                    print("\nVocê PERDEU! Os cérebros dos humanos foram mais astutos dessa vez.")
-                    contagem_derrotados += 1
-                    break
-                else:
-                    score_jogador(jogadores, jogador)
+                vencedor = estado_jogo["vencedor"]
+                contagem_derrotados = estado_jogo["contagem_derrotados"]
+                jogar = estado_jogo["continuar"]
 
-                    print("Quer continuar caçando humanos?")
-                    continuar_turno = input("Digite S para sim ou N para não: ")
-                    dados_suficientes_continuar = len(tubo_dados) >= 3
+                # Verifica quantidade de dados para saber se é possível rolar novamente
+                dados_suficientes = len(tubo_dados) < 3
 
-                    # Garante uma resposta válida
-                    while continuar_turno.lower() != "s" and continuar_turno.lower() != "n":
-                        print("\nResposta inválida!")
-                        continuar_turno = input("Digite S para sim ou N para não: ")
-
-                    # Se for necessário, gera um novo tubo para continuar jogando
-                    if continuar_turno.lower() != "s" and not dados_suficientes_continuar:
-                        tubo_dados = gerar_tubo_embaralhado()
-                    elif continuar_turno.lower() == "n":
-                        jogadores[jogador]["tiros"] = 0
-                        jogadores[jogador]["passos"] = 0
+                if jogar and not dados_suficientes:
+                    tubo_dados = gerar_tubo_embaralhado()
 
     # Caso não haja vencedor por capturar 13 cérebros encontra o último sobrevivente
     if vencedor == '':
@@ -240,19 +297,7 @@ def zombie_dice():
 
     print(f"\n{vencedor} foi o zumbi vencedor desta partida!\n")
 
-    # Verifica se desejam jogar outra vez
-    print("Quer caçar cérebros outra vez?")
-    jogar_novamente = input("Digite S para sim ou N para não: ")
-
-    # Garante uma resposta válida
-    while jogar_novamente.lower() != "s" and jogar_novamente.lower() != "n":
-        print("\nResposta inválida!")
-        jogar_novamente = input("Digite S para sim ou N para não: ")
-
-    if jogar_novamente.lower() == "n":
-        print("\nObrigado por jogar Zombie Dice!\n")
-    else:
-        print("\nE que uma nova caçada comece!\n")
+    if verifica_jogar_novamente():
         zombie_dice()
 
 
