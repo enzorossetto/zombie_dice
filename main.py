@@ -17,10 +17,21 @@ Dado = namedtuple('Dado', ['cor', 'faces'])
 
 
 def lancar_dado(dado_lancado):
+    """
+        Retorna um lado de forma aleatória do Dado recebido.
+
+        :param dado_lancado: Estrutura Dado que será usada para obter uma face em aleatório.
+        :return: "C" or "T" or "P"
+    """
     return choice(dado_lancado.faces)
 
 
 def gerar_tubo_embaralhado():
+    """
+        Gera um tubo com 13 dados embaralhados sendo 6 verdes, 4 amarelos e 3 vermelhos
+        :return: List[Dado]
+    """
+
     tubo = []
 
     # Definição dos tipos de dados
@@ -46,6 +57,11 @@ def gerar_tubo_embaralhado():
 
 
 def cadastrar_jogadore():
+    """
+        Realiza o cadastro dos jogadores retornando uma estrutura em dicioário como a seguinte:
+        :return: { "nome_jogador": {"tiros": 0, "cerebros": 0, "passos": 0}, ... }
+    """
+
     # Mensagem para conseguir a quantia de jogadores
     numero_jogadores = int(input("Informe o número de jogadores: "))
 
@@ -76,6 +92,13 @@ def cadastrar_jogadore():
 
 
 def dados_no_copo(dados_tubo):
+    """
+    Recebe os dados restantes no tubo e retorna os três dados selecionados para serem rolados
+
+    :param dados_tubo: Dados presentes no tubo
+    :return: List[Dado]
+    """
+
     dados_copo = []
 
     # Retira os 3 primeiros dados do tubo
@@ -88,6 +111,15 @@ def dados_no_copo(dados_tubo):
 
 
 def lancar_dados_copo(jogador_turno, dados_copo, dados_tubo):
+    """
+        Lança os três dados no existentes no copo, altera o score do jogador e retorna para o tubo
+        os dados que tiveram valor 'passos'
+
+        :param jogador_turno: jogador atual
+        :param dados_copo: três dados existentes no copo
+        :param dados_tubo: dados restantes no copo
+    """
+
     # Joga os dados para conseguir seus valores
     for dado in dados_copo:
         valor_dado = lancar_dado(dado)
@@ -106,6 +138,13 @@ def lancar_dados_copo(jogador_turno, dados_copo, dados_tubo):
 
 
 def score_jogador(lista_jogadores, jogador_turno):
+    """
+        Mostra a pontuação atual do jogador recebido
+
+        :param lista_jogadores: dicionário com os jogadores
+        :param jogador_turno:  nome do jogador atual
+    """
+
     print(f"\nA potuação de {jogador_turno} até agora é:")
     print(f"Cérebros comidos: {lista_jogadores[jogador_turno]['cerebros']}")
     print(f"Tiros recebidos: {lista_jogadores[jogador_turno]['tiros']}")
@@ -113,6 +152,10 @@ def score_jogador(lista_jogadores, jogador_turno):
 
 
 def zombie_dice():
+    """
+        Executa o jogo Zombie Dice
+    """
+
     # Cadastra os jogadores dessa partida
     jogadores = cadastrar_jogadore()
     quantia_jogadores = len(jogadores)
