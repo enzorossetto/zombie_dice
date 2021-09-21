@@ -9,32 +9,37 @@
 # embaralhar uma lista
 from random import choice, sample, shuffle
 
-# Definição dos tipos de dados
-# Significados das letras: C = cérebro, T = tiro e P = passos
+# Importação do namedtuple para criar dados identificados
+from collections import namedtuple
 
-DADO_VERDE = ("C", "P", "C", "T", "P", "C")
-DADO_AMARELO = ("T", "P", "C", "T", "P", "C")
-DADO_VERMELHO = ("T", "P", "T", "C", "P", "T")
+# Definição de uma tupla para a base da estrutura dos dados
+Dado = namedtuple('Dado', ['cor', 'faces'])
 
 
-def rolar_dado(dado_rolado):
-    return choice(dado_rolado)
+def lancar_dado(dado_lancado):
+    return choice(dado_lancado.faces)
 
 
 def gerar_tubo_embaralhado():
     tubo = []
 
+    # Definição dos tipos de dados
+    # Significados das letras: C = cérebro, T = tiro e P = passos
+    dado_verde = Dado(cor='verde', faces=("C", "P", "C", "T", "P", "C"))
+    dado_amarelo = Dado(cor='amarelo', faces=("T", "P", "C", "T", "P", "C"))
+    dado_vermelho = Dado(cor='vermelho', faces=("T", "P", "T", "C", "P", "T"))
+
     # Adicionar os dados verdes ao tubo
     for _ in range(6):
-        tubo.append(DADO_VERDE)
+        tubo.append(dado_verde)
 
     # Adicionar os dados amarelos ao tubo
     for _ in range(4):
-        tubo.append(DADO_AMARELO)
+        tubo.append(dado_amarelo)
 
     # Adicionar os dados vermelhos ao tubo
     for _ in range(3):
-        tubo.append(DADO_VERMELHO)
+        tubo.append(dado_vermelho)
 
     # Gera um tubo com dados embaralhados
     return sample(tubo, len(tubo))
@@ -50,7 +55,7 @@ def cadastrar_jogadore():
         numero_jogadores = int(input("Informe o número de jogadores: "))
 
     # Lista com o nome dos jogadores
-    lista_jogadores = []
+    lista_jogadores = {}
 
     # Pula uma linha para melhorar a leitura
     print("")
@@ -58,98 +63,142 @@ def cadastrar_jogadore():
     # Recebe os nomes dos jogadores
     for i in range(0, numero_jogadores):
         novo_jogador = input(f"Digite no nome do jogador {i + 1}: ")
-        lista_jogadores.append(novo_jogador)
+
+        while novo_jogador in lista_jogadores:
+            print(f"Jogador {novo_jogador} já incluso anteriormente")
+            novo_jogador = input(f"Digite um nome diferente de {novo_jogador} para o jogador {i + 1}: ")
+
+        # Inicializa o score do jogador
+        lista_jogadores[novo_jogador] = {"tiros": 0, "cerebros": 0, "passos": 0}
 
     # returna os jogadores cadastrados
     return lista_jogadores
 
 
-while True:
+def dados_no_copo(dados_tubo):
+    dados_copo = []
+
+    # Retira os 3 primeiros dados do tubo
+    for _ in range(3):
+        dados_copo.append(dados_tubo.pop(0))
+
+    print(f"Dados no copo: {dados_copo[0].cor}, {dados_copo[1].cor}, {dados_copo[2].cor}\n")
+
+    return dados_copo
+
+
+def lancar_dados_copo(jogador_turno, dados_copo, dados_tubo):
+    # Joga os dados para conseguir seus valores
+    for dado in dados_copo:
+        valor_dado = lancar_dado(dado)
+
+        if valor_dado == "C":
+            print(f"Dado {dado.cor} - Você capturou o humano e comeu um CÉREBRO!")
+            jogador_turno["cerebros"] += 1
+        elif valor_dado == "T":
+            print(f"Dado {dado.cor} - O humano ATIROU em você! Cuidado para não morrer.")
+            jogador_turno["tiros"] += 1
+        else:
+            print(f"Dado {dado.cor} - Os PASSOS do humano foram mais rápidos e ele fugiu! Vá atrás dele outra vez.")
+            jogador_turno["passos"] += 1
+            dados_tubo.append(dado)  # Devolve o dado para o tubo
+            shuffle(dados_tubo)  # Embaralha o tubo outra vez
+
+
+def score_jogador(lista_jogadores, jogador_turno):
+    print(f"\nA potuação de {jogador_turno} até agora é:")
+    print(f"Cérebros comidos: {lista_jogadores[jogador_turno]['cerebros']}")
+    print(f"Tiros recebidos: {lista_jogadores[jogador_turno]['tiros']}")
+    print(f"Humanos que fugiram: {lista_jogadores[jogador_turno]['passos']}\n")
+
+
+def zombie_dice():
     # Cadastra os jogadores dessa partida
     jogadores = cadastrar_jogadore()
+    quantia_jogadores = len(jogadores)
 
-    # Contabiliza os pontos dos jogadores
-    cerebros = [0] * len(jogadores)
-    tiros = [0] * len(jogadores)
+    # Controle do loop de jogo
+    vencedor = ''
+    contagem_derrotados = 0
 
-    # Executa os turnos dos jogadores
-    for index_jogador in range(0, len(jogadores)):
-        print(f"\n{jogadores[index_jogador]} é o zumbi da vez!")
-        print("Capture os humanos e coma seus cérebros!")
+    while vencedor == '' and contagem_derrotados < quantia_jogadores - 1:
+        # Executa os turnos dos jogadores
+        for jogador in jogadores:
 
-        continuar_turno = "s"  # controla se continua o turno por escolha
-        tubo_dados = gerar_tubo_embaralhado()  # inicia um novo tubo de dados
+            # Caso haja vencedor, o jogo passa todos os turnos restantes e encerra
+            if vencedor != '':
+                continue
 
-        # Condições que permitem o jogador a continuar o turno ou não
-        vitoria = cerebros[index_jogador] >= 13
-        derrota = tiros[index_jogador] >= 3
-        dados_suficientes_continuar = len(tubo_dados) >= 3
+            continuar_turno = "s"  # controla se continua o turno por escolha
+            tubo_dados = gerar_tubo_embaralhado()  # inicia um novo tubo de dados
 
-        # Validação se é possível continuar o turno
-        turno_possivel = not vitoria and not derrota and dados_suficientes_continuar
+            # Condições que permitem o jogador a continuar o turno ou não
+            vitoria = jogadores[jogador]["cerebros"] >= 13
+            derrota = jogadores[jogador]["tiros"] >= 3
+            dados_suficientes_continuar = len(tubo_dados) >= 3
 
-        # Jogador continua enquanto desejar ou for possível
-        while continuar_turno.lower() == "s" and turno_possivel:
-            # Pula uma linha para melhorar separação das mensagens
-            print()
+            # Caso seja uma nova rodada, passa o turno do jogador que perdeu em rodada anterior
+            if derrota:
+                print(f"\n{jogador} já foi derrotado. Passando turno para o próximo.\n")
+                continue
 
-            # Armazena os dados desta jogada
-            dados_turno = []
+            # Validação se é possível continuar o turno
+            turno_possivel = not vitoria and not derrota and dados_suficientes_continuar
 
-            # Retira os 3 primeiros dados do tubo
-            for _ in range(3):
-                dados_turno.append(tubo_dados.pop(0))
+            print(f"{jogador} é o zumbi da vez!")
+            print("Capture os humanos e coma seus cérebros!")
 
-            # Joga os dados para conseguir seus valores
-            for dado in dados_turno:
-                valor_dado = rolar_dado(dado)
+            # Jogador continua enquanto desejar ou for possível
+            while continuar_turno.lower() == "s" and turno_possivel:
+                # Pula uma linha para melhorar separação das mensagens
+                print()
 
-                if valor_dado == "C":
-                    print("Você capturou o humano e comeu um CÉREBRO!")
-                    cerebros[index_jogador] += 1
-                elif valor_dado == "T":
-                    print("O humano ATIROU em você! Cuidado para não morrer.")
-                    tiros[index_jogador] += 1
+                # Armazena os dados desta jogada
+                dados_turno = dados_no_copo(tubo_dados)
+                lancar_dados_copo(jogadores[jogador], dados_turno, tubo_dados)
+
+                # Reavalia condições de vitória ou derrota
+                vitoria = jogadores[jogador]["cerebros"] >= 13
+                derrota = jogadores[jogador]["tiros"] >= 3
+
+                # Valida condições para encerrar ou continuar o jogo
+                if vitoria:
+                    print(f"\nVocê VENCEU! Os humanos nunca serão páreos para os zumbis!")
+                    vencedor = jogador
+                    break
+                elif derrota:
+                    print("\nVocê PERDEU! Os cérebros dos humanos foram mais astutos dessa vez.")
+                    contagem_derrotados += 1
+                    break
                 else:
-                    print("Os PASSOS do humano foram mais rápidos e ele fugiu! Vá atrás dele outra vez.")
-                    tubo_dados.append(dado)  # Devolve o dado para o tubo
-                    shuffle(tubo_dados)  # Embaralha o tubo outra vez
+                    score_jogador(jogadores, jogador)
 
-            # Reavalia condições de vitória ou derrota
-            vitoria = cerebros[index_jogador] >= 13
-            derrota = tiros[index_jogador] >= 3
-
-            # Valida condições para encerrar ou continuar o jogo
-            if vitoria:
-                print("\nVocê VENCEU! Os humanos nunca serão páreos para os zumbis!")
-                vitoria = True
-                break
-            elif derrota:
-                print("\nVocê PERDEU! Os cérebros dos humanos foram mais astutos dessa vez.")
-                derrota = True
-                break
-            else:
-                print(f"\nA potuação de {jogadores[index_jogador]} até agora é:")
-                print(f"Cérebros comidos: {cerebros[index_jogador]}")
-                print(f"Tiros recebidos: {tiros[index_jogador]}\n")
-
-                print("Quer continuar caçando humanos?")
-                continuar_turno = input("Digite S para sim ou N para não: ")
-                dados_suficientes_continuar = len(tubo_dados) >= 3
-
-                # Garante uma resposta válida
-                while continuar_turno.lower() != "s" and continuar_turno.lower() != "n":
-                    print("\nResposta inválida!")
+                    print("Quer continuar caçando humanos?")
                     continuar_turno = input("Digite S para sim ou N para não: ")
+                    dados_suficientes_continuar = len(tubo_dados) >= 3
 
-                # Se for necessário, gera um novo tubo para continuar jogando
-                if continuar_turno.lower() != "s" and not dados_suficientes_continuar:
-                    tubo_dados = gerar_tubo_embaralhado()
-                elif continuar_turno.lower() == "n":
-                    tiros[index_jogador] = 0
+                    # Garante uma resposta válida
+                    while continuar_turno.lower() != "s" and continuar_turno.lower() != "n":
+                        print("\nResposta inválida!")
+                        continuar_turno = input("Digite S para sim ou N para não: ")
+
+                    # Se for necessário, gera um novo tubo para continuar jogando
+                    if continuar_turno.lower() != "s" and not dados_suficientes_continuar:
+                        tubo_dados = gerar_tubo_embaralhado()
+                    elif continuar_turno.lower() == "n":
+                        jogadores[jogador]["tiros"] = 0
+                        jogadores[jogador]["passos"] = 0
+
+    # Caso não haja vencedor por capturar 13 cérebros encontra o último sobrevivente
+    if vencedor == '':
+        for jogador in jogadores:
+            if jogadores[jogador]['tiros'] < 3:
+                vencedor = jogador
+
+    print(f"\n{vencedor} foi o zumbi vencedor desta partida!\n")
 
     # Verifica se desejam jogar outra vez
-    print("\nQuer caçar cérebros outra vez?")
+    print("Quer caçar cérebros outra vez?")
     jogar_novamente = input("Digite S para sim ou N para não: ")
 
     # Garante uma resposta válida
@@ -159,6 +208,9 @@ while True:
 
     if jogar_novamente.lower() == "n":
         print("\nObrigado por jogar Zombie Dice!\n")
-        break
     else:
         print("\nE que uma nova caçada comece!\n")
+        zombie_dice()
+
+
+zombie_dice()
