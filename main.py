@@ -207,7 +207,7 @@ class ZombieDice:
             print("\nVocê PERDEU! Os cérebros dos humanos foram mais astutos dessa vez.")
             retorno["contagem_derrotados"] += 1
         else:
-            retorno["continuar"] = self.verifica_continuar_turno(lista_jogadores, jogador_turno, )
+            retorno["continuar"] = self.verifica_continuar_turno(self, lista_jogadores, jogador_turno, )
 
         return retorno
 
@@ -256,6 +256,7 @@ class ZombieDice:
         while vencedor == '' and contagem_derrotados < quantia_jogadores - 1:
             # Executa os turnos dos jogadores
             for jogador in jogadores:
+                print()  # Pula uma linha para melhorar legibilidade das mensagens
 
                 # Caso haja vencedor, o jogo passa todos os turnos restantes e encerra
                 if vencedor != '':
@@ -268,7 +269,7 @@ class ZombieDice:
 
                 # Caso seja uma nova rodada, passa o turno do jogador que perdeu em rodada anterior
                 if derrotado:
-                    print(f"\n{jogador} já foi derrotado. Passando turno para o próximo.\n")
+                    print(f"{jogador} já foi derrotado. Passando turno para o próximo.\n")
                     continue
 
                 # Validação se é possível continuar o turno
@@ -284,10 +285,10 @@ class ZombieDice:
 
                     # Armazena os dados desta jogada
                     dados_turno = self.dados_no_copo(tubo_dados)
-                    self.lancar_dados_copo(jogadores[jogador], dados_turno, tubo_dados)
+                    self.lancar_dados_copo(self, jogadores[jogador], dados_turno, tubo_dados)
 
                     # Valida o estado do jogador ou se ele deseja continuar jogando
-                    estado_jogo = self.verifica_vitoria(jogadores, jogador, contagem_derrotados)
+                    estado_jogo = self.verifica_vitoria(self, jogadores, jogador, contagem_derrotados)
 
                     vencedor = estado_jogo["vencedor"]
                     contagem_derrotados = estado_jogo["contagem_derrotados"]
