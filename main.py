@@ -243,6 +243,8 @@ class ZombieDice:
             :param self: referência da classe
         """
 
+        print("Bem-vindos ao Zombie Dice! Estão preparados para caçar os humanos?")
+
         # Cadastra os jogadores dessa partida
         jogadores = self.cadastrar_jogadore()
         quantia_jogadores = len(jogadores)
@@ -250,8 +252,6 @@ class ZombieDice:
         # Controle do loop de jogo
         vencedor = ''
         contagem_derrotados = 0
-
-        print("Bem-vindos ao Zombie Dice! Estão preparados para caçar os humanos?")
 
         while vencedor == '' and contagem_derrotados < quantia_jogadores - 1:
             # Executa os turnos dos jogadores
