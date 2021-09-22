@@ -251,6 +251,8 @@ class ZombieDice:
         vencedor = ''
         contagem_derrotados = 0
 
+        print("Bem-vindos ao Zombie Dice! Estão preparados para caçar os humanos?")
+
         while vencedor == '' and contagem_derrotados < quantia_jogadores - 1:
             # Executa os turnos dos jogadores
             for jogador in jogadores:
