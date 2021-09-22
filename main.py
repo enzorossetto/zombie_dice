@@ -1,7 +1,7 @@
 # Pontifícia Universidade Católica do Paraná
 # Disciplina: Raciocínio Computacional
 # Aluno: Enzo Jeremias Mantelli Rossetto
-# Atividade Somativa 1: Protótipo inicial
+# Atividade Somativa 2: Jogo Completo
 
 # Importação do método para:
 # pegar um valor randomico dentro de uma string,
